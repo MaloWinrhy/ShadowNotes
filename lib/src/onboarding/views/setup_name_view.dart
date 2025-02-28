@@ -37,7 +37,7 @@ class _SetupNameViewState extends State<SetupNameView> {
           children: [
             Center(
               child: Column(
-                mainAxisSize: MainAxisSize.min, // centre pile la colonne
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
