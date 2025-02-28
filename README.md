@@ -89,7 +89,7 @@ flutter_rust_bridge_codegen generate && flutter run
 
 - [ ] Secure QR Code Sharing
 - [ ] Full-featured Panic Mode
-- [ ] Support for Desktop & Web
+- [ ] Support for Desktop
 
 ---
 
