@@ -59,9 +59,18 @@ flutter_rust_bridge_codegen generate && flutter run
 
 ## 📸 Preview
 
-| Onboarding  | Notes List | Encrypted Note View |
-|---|---|---|
-| ![Onboarding](https://via.placeholder.com/150x300) | ![Notes](https://via.placeholder.com/150x300) | ![Note](https://via.placeholder.com/150x300) |
+<table>
+  <tr>
+    <th>Onboarding</th>
+    <th>Notes List</th>
+    <th>Encrypted Note View</th>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/ba4ec985-4e04-481b-91be-812d4f06361b" width="200"></td>
+    <td><img src="https://github.com/user-attachments/assets/00065542-fdde-48b8-8798-c5f2deca6b9a" width="200"></td>
+    <td><img src="https://github.com/user-attachments/assets/b9c46680-6c41-40f9-bc73-56d9201e5b2a" width="200"></td>
+  </tr>
+</table>
 
 ---
 
@@ -93,5 +102,3 @@ Created by **Malo "Winrhy" Henry**
 ---
 
 ## 🌟 Don't forget to star the repo if you like the project!
-
-# ShadowNotes
