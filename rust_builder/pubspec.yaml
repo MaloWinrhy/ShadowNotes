@@ -15,6 +15,7 @@ dependencies:
   lottie: ^2.7.0
   package_info_plus: ^4.2.0
   lucide_icons: 0.257.0
+  water_drop_nav_bar: ^2.2.2
 
 dev_dependencies:
   ffi: ^2.0.2

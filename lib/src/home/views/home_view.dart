@@ -1,261 +1,162 @@
-import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shadow_notes/src/rust/api/encryption.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/note_model.dart';
-import 'note_editor_view.dart';
+import 'package:shadow_notes/src/home/views/notes_view.dart';
+import 'package:water_drop_nav_bar/water_drop_nav_bar.dart';
 
-class HomeView extends StatefulWidget {
-  const HomeView({super.key});
+class HomeContainer extends StatefulWidget {
+  const HomeContainer({super.key});
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  State<HomeContainer> createState() => _HomeContainerState();
 }
 
-class _HomeViewState extends State<HomeView> {
-  String username = '';
-  final List<NoteItem> notes = [];
+class _HomeContainerState extends State<HomeContainer> with SingleTickerProviderStateMixin {
+  int _currentIndex = 0;
+
+  final List<Widget> _pages = const [
+    NotesView(),
+    NotesView(),
+    NotesView(),
+    NotesView(),
+  ];
+
+  late AnimationController _waveController;
 
 @override
 void initState() {
   super.initState();
-  _init();
+  _waveController = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 10),
+  )..repeat();
 }
 
-void _init() {
-  _loadUsername();
-  Future.delayed(Duration.zero, _loadNotes);
-}
-
-  Future<void> _loadUsername() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      username = prefs.getString('username') ?? 'User';
-    });
-  }
-
-  Future<void> _loadNotes() async {
-    final prefs = await SharedPreferences.getInstance();
-    final notesString = prefs.getString('notes');
-    if (notesString != null) {
-      final List<dynamic> decoded = jsonDecode(notesString);
-      setState(() {
-        notes.clear();
-        notes.addAll(decoded.map((e) => NoteItem.fromJson(e as Map<String, dynamic>)));
-      });
-    }
-  }
-
-  Future<void> _saveNotes() async {
-    final prefs = await SharedPreferences.getInstance();
-    final notesJson = notes.map((n) => n.toJson()).toList();
-    await prefs.setString('notes', jsonEncode(notesJson));
-  }
-
-  Future<void> _showNotePasswordDialog(NoteItem note) async {
-  final passwordController = TextEditingController();
-
-  final result = await showModalBottomSheet<String>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.black,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Center(
-            child: Text(
-              '🔐 Enter Password',
-              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: passwordController,
-            obscureText: true,
-            cursorColor: Colors.green,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              labelText: 'Password',
-              labelStyle: const TextStyle(color: Colors.white54),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.white30),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Colors.green),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: Colors.white.withOpacity(0.05),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () => Navigator.pop(context, passwordController.text.trim()),
-                child: const Text('Decrypt', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          )
-        ],
-      ),
-    ),
-  );
-
-  if (result != null && result.isNotEmpty) {
-    _decryptAndShowNote(note, result);
-  }
-}
-
-  Future<void> _decryptAndShowNote(NoteItem note, String password) async {
-    try {
-      final decrypted = await decryptNote(
-        nonce: note.nonce.toList(),
-        encryptedNote: note.encrypted.toList(),
-        password: password,
-      );
-      _showDecryptedNote(note, decrypted);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bad Password')),
-      );
-    }
-  }
-
-  void _showDecryptedNote(NoteItem note, String decryptedContent) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.black,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
-    builder: (context) => Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Text(
-              note.title,
-              style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            "📎 Tags: ${note.tags.join(', ')}",
-            style: const TextStyle(color: Colors.white54),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white10,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              decryptedContent,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close', style: TextStyle(color: Colors.green)),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-  Future<void> _addNewNote() async {
-    final newNote = await showModalBottomSheet<NoteItem>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.black,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => const NoteEditorView(),
-    );
-
-    if (newNote != null) {
-      setState(() {
-        notes.add(newNote);
-        _saveNotes();
-      });
-    }
+  @override
+  void dispose() {
+    _waveController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Text('Hello, $username 👋', style: const TextStyle(color: Colors.white)),
-      ),
-      body: notes.isEmpty
-          ? const Center(
-              child: Text(
-                'No notes yet',
-                style: TextStyle(color: Colors.white54),
-              ),
-            )
-            : ListView.separated(
-              itemCount: notes.length,
-              padding: const EdgeInsets.all(16),
-              separatorBuilder: (context, index) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-              final note = notes[index];
-              return ListTile(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                tileColor: Colors.white10,
-                leading: const Icon(Icons.lock, color: Colors.green),
-                title: Text(note.title, style: const TextStyle(color: Colors.white)),
-                subtitle: Text(
-                "Created at ${_formatDate(note.date)}",
-                style: const TextStyle(color: Colors.white54),
-                ),
-                onTap: () => _showNotePasswordDialog(note),
-              );
+      body: _pages[_currentIndex],
+      bottomNavigationBar: Stack(
+        clipBehavior: Clip.none, // Permet aux vagues de déborder
+        children: [
+          Positioned(
+            bottom: 95, // Ce qui fait que ça sort de la nav bar vers le haut
+            left: 0,
+            right: 0,
+            height: 60, // Hauteur totale des vagues
+            child: AnimatedBuilder(
+              animation: _waveController,
+              builder: (context, child) {
+                return Stack(
+                  children: [
+                    CustomPaint(
+                      size: const Size(double.infinity, 60),
+                      painter: WavePainter(
+                        progress: _waveController.value,
+                        amplitude: 20,
+                        speedFactor: 1.0,
+                        color: Colors.green.withOpacity(0.4),
+                      ),
+                    ),
+                    CustomPaint(
+                      size: const Size(double.infinity, 60),
+                      painter: WavePainter(
+                        progress: _waveController.value,
+                        amplitude: 14,
+                        speedFactor: 1.8,
+                        color: Colors.green.withOpacity(0.6),
+                        phaseShift: pi / 2,
+                      ),
+                    ),
+                    CustomPaint(
+                      size: const Size(double.infinity, 60),
+                      painter: WavePainter(
+                        progress: _waveController.value,
+                        amplitude: 10,
+                        speedFactor: 2.5,
+                        color: Colors.green.withOpacity(0.8),
+                        phaseShift: pi,
+                      ),
+                    ),
+                    CustomPaint(
+                      size: const Size(double.infinity, 60),
+                      painter: WavePainter(
+                        progress: _waveController.value,
+                        amplitude: 6,
+                        speedFactor: 2.5,
+                        color: Colors.green.withOpacity(1),
+                        phaseShift: pi,
+                      ),
+                    ),
+                  ],
+                );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.green,
-        onPressed: _addNewNote,
-        child: const Icon(Icons.add, color: Colors.white),
+          ),
+           WaterDropNavBar(
+            backgroundColor: Colors.black,
+            waterDropColor: Colors.green,
+            onItemSelected: (index) {
+              setState(() => _currentIndex = index);
+            },
+            selectedIndex: _currentIndex,
+            barItems: [
+              BarItem(filledIcon: Icons.notes, outlinedIcon: Icons.notes_outlined),
+              BarItem(filledIcon: Icons.lock, outlinedIcon: Icons.lock_outline),
+              BarItem(filledIcon: Icons.qr_code, outlinedIcon: Icons.qr_code_outlined),
+              BarItem(filledIcon: Icons.settings, outlinedIcon: Icons.settings_outlined),
+            ],
+          ),
+        ],
       ),
     );
   }
+}
 
-  String _formatDate(DateTime date) {
-    return "${date.day}/${date.month}/${date.year}";
+class WavePainter extends CustomPainter {
+  final double progress;
+  final double amplitude;
+  final double speedFactor;
+  final Color color;
+  final double phaseShift;
+
+  WavePainter({
+    required this.progress,
+    required this.amplitude,
+    required this.speedFactor,
+    required this.color,
+    this.phaseShift = 0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    path.moveTo(0, size.height);
+
+    final double waveOffset = progress * 2 * pi;
+
+    for (double x = 0; x <= size.width; x++) {
+      final y = size.height - (amplitude * sin((x / size.width * 2 * pi * speedFactor) + waveOffset + phaseShift));
+      path.lineTo(x, y);
+    }
+
+    path.lineTo(size.width, size.height);
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant WavePainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }

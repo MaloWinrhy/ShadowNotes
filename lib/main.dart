@@ -17,6 +17,7 @@ class ShadowNotesApp extends StatelessWidget {
     return MaterialApp(
       title: 'ShadowNotes',
       theme: ThemeData.light(),
+      debugShowCheckedModeBanner: false,
       home: const SplashView(),
     );
   }

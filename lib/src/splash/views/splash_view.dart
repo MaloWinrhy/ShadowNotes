@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadow_notes/src/home/views/home_view.dart';
+import 'package:shadow_notes/src/home/views/notes_view.dart';
 import 'package:shadow_notes/src/onboarding/views/onboarding_views.dart';
 import 'package:shadow_notes/src/onboarding/views/setup_name_view.dart';
 
@@ -44,7 +45,7 @@ class _SplashViewState extends State<SplashView> {
     } else if (username == null || username.isEmpty) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SetupNameView()));
     } else {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeView()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeContainer()));
     }
   }
 

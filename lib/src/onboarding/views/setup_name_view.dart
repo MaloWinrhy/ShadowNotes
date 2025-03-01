@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shadow_notes/src/home/views/home_view.dart';
+import 'package:shadow_notes/src/home/views/notes_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SetupNameView extends StatefulWidget {
@@ -24,7 +25,7 @@ class _SetupNameViewState extends State<SetupNameView> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', name);
 
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeView()));
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeContainer()));
   }
 
   @override
