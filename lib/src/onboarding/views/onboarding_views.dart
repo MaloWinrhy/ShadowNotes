@@ -1,119 +1,73 @@
 import 'package:flutter/material.dart';
-import 'package:shadow_notes/src/onboarding/views/setup_name_view.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:shadow_notes/src/onboarding/controllers/onboarding_controller.dart';
 
-class OnboardingView extends StatefulWidget {
+class OnboardingView extends StatelessWidget {
   const OnboardingView({super.key});
 
   @override
-  State<OnboardingView> createState() => _OnboardingViewState();
-}
-
-class _OnboardingViewState extends State<OnboardingView> {
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
-
-  final List<Map<String, dynamic>> onboardingData = [
-    {
-      'title': 'Welcome to ShadowNotes',
-      'description': 'Your notes, protected and encrypted.',
-      'icon': LucideIcons.fileLock,
-    },
-    {
-      'title': 'Each note has its password',
-      'description': 'Secure each note individually.',
-      'icon': LucideIcons.key,
-    },
-    {
-      'title': 'QR Code Sharing',
-      'description': 'Send your encrypted notes securely.',
-      'icon': LucideIcons.scanLine,
-    },
-    {
-      'title': 'Panic Mode',
-      'description': 'Reveals a fake note in case of emergency.',
-      'icon': LucideIcons.alertTriangle,
-    },
-  ];
-
-  Future<void> _completeOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('seenOnboarding', true);
-    if (context.mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const SetupNameView()),
-      );
-    }
-  }
-
-  void _nextPage() {
-    if (_currentPage == onboardingData.length - 1) {
-      _completeOnboarding();
-    } else {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.ease,
-      );
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final controller = OnboardingController();
+
     return Scaffold(
       backgroundColor: const Color(0xFF202020),
-      body: Stack(
-        children: [
-          PageView.builder(
-            controller: _pageController,
-            itemCount: onboardingData.length,
-            onPageChanged: (index) => setState(() => _currentPage = index),
-            itemBuilder: (context, index) {
-              final data = onboardingData[index];
-              return _OnboardingPage(
-                title: data['title']!,
-                description: data['description']!,
-                icon: data['icon']!,
-              );
-            },
-          ),
-          Positioned(
-            bottom: 20,
-            left: 20,
-            right: 20,
-            child: _buildBottomBar(),
-          ),
-        ],
+      body: ValueListenableBuilder<int>(
+        valueListenable: controller.currentPage,
+        builder: (context, currentPage, _) {
+          return Stack(
+            children: [
+              PageView.builder(
+                controller: controller.pageController,
+                itemCount: controller.onboardingData.length,
+                onPageChanged: (index) => controller.currentPage.value = index,
+                itemBuilder: (context, index) {
+                  final data = controller.onboardingData[index];
+                  return _OnboardingPage(
+                    title: data['title']!,
+                    description: data['description']!,
+                    icon: data['icon']!,
+                    isLastPage: index == controller.onboardingData.length - 1,
+                    onDonateTap: controller.openBuyMeACoffee,
+                  );
+                },
+              ),
+              Positioned(
+                bottom: 20,
+                left: 20,
+                right: 20,
+                child: _buildBottomBar(context, controller, currentPage),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(BuildContext context, OnboardingController controller, int currentPage) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         TextButton(
-          onPressed: _completeOnboarding,
+          onPressed: () => controller.completeOnboarding(context),
           child: const Text('Skip', style: TextStyle(color: Colors.white70)),
         ),
         Row(
-          children: List.generate(onboardingData.length, (index) {
+          children: List.generate(controller.onboardingData.length, (index) {
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 4),
               width: 8,
               height: 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _currentPage == index ? Colors.green : Colors.grey,
+                color: currentPage == index ? Colors.green : Colors.grey,
               ),
             );
           }),
         ),
         TextButton(
-          onPressed: _nextPage,
+          onPressed: () => controller.nextPage(context),
           child: Text(
-            _currentPage == onboardingData.length - 1 ? 'Finish' : 'Next',
+            currentPage == controller.onboardingData.length - 1 ? 'Finish' : 'Next',
             style: const TextStyle(color: Colors.green),
           ),
         )
@@ -126,11 +80,15 @@ class _OnboardingPage extends StatelessWidget {
   final String title;
   final String description;
   final IconData icon;
+  final bool isLastPage;
+  final VoidCallback? onDonateTap;
 
   const _OnboardingPage({
     required this.title,
     required this.description,
     required this.icon,
+    this.isLastPage = false,
+    this.onDonateTap,
   });
 
   @override
@@ -156,6 +114,26 @@ class _OnboardingPage extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white70),
           ),
+         if (isLastPage) ...[
+  const SizedBox(height: 20),
+  OutlinedButton.icon(
+    onPressed: onDonateTap,
+    icon: const Icon(Icons.favorite, color: Colors.white),
+    label: const Text(
+      'Support',
+      style: TextStyle(color: Colors.white),
+    ),
+    style: OutlinedButton.styleFrom(
+      side: const BorderSide(color: Colors.pink),
+      foregroundColor: Colors.pink,
+      backgroundColor: Colors.pink,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30),
+      ),
+    ),
+  ),
+]
         ],
       ),
     );
