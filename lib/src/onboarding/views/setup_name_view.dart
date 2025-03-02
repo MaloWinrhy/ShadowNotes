@@ -1,44 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:shadow_notes/src/home/views/home_view.dart';
-import 'package:shadow_notes/src/home/views/notes_view.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shadow_notes/src/onboarding/controllers/setup_name_controller.dart';
 
-class SetupNameView extends StatefulWidget {
+class SetupNameView extends StatelessWidget {
   const SetupNameView({super.key});
 
   @override
-  State<SetupNameView> createState() => _SetupNameViewState();
-}
-
-class _SetupNameViewState extends State<SetupNameView> {
-  final TextEditingController _nameController = TextEditingController();
-
-  Future<void> _saveNameAndGoHome() async {
-    final name = _nameController.text.trim();
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a name!")),
-      );
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('username', name);
-
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeContainer()));
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final controller = SetupNameController();
+
     return Scaffold(
-      backgroundColor:  const Color.fromARGB(255, 32, 32, 32),
+      backgroundColor: const Color.fromARGB(255, 32, 32, 32),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Stack(
           children: [
             Center(
               child: Column(
-                mainAxisSize: MainAxisSize.min, // centre pile la colonne
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
@@ -49,11 +27,11 @@ class _SetupNameViewState extends State<SetupNameView> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   SizedBox(
-                    width: 200,
+                    width: 220,
                     child: TextField(
-                      controller: _nameController,
+                      controller: controller.nameController,
                       cursorColor: Colors.green,
                       style: const TextStyle(
                         color: Colors.white,
@@ -61,7 +39,7 @@ class _SetupNameViewState extends State<SetupNameView> {
                         fontWeight: FontWeight.bold,
                       ),
                       decoration: InputDecoration(
-                        hintText: "pseudo",
+                        hintText: "Your pseudo...",
                         hintStyle: const TextStyle(color: Colors.white38),
                         enabledBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: Colors.green.withOpacity(0.5)),
@@ -78,13 +56,16 @@ class _SetupNameViewState extends State<SetupNameView> {
             Positioned(
               bottom: 20,
               right: 20,
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.arrow_forward, color: Colors.white),
+                label: const Text("Continue"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                onPressed: _saveNameAndGoHome,
-                child: const Text("Continue", style: TextStyle(color: Colors.white)),
+                onPressed: () => controller.saveNameAndGoHome(context),
               ),
             )
           ],
