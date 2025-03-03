@@ -42,29 +42,35 @@ class NotesView extends StatelessWidget {
             );
           }
           return ListView.builder(
-            itemCount: notes.length,
-            padding: const EdgeInsets.all(16),
-            itemBuilder: (context, index) {
-              final note = notes[index];
-              return ListTile(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                tileColor: Colors.white10,
-                leading: const Icon(LucideIcons.fileLock, color: Colors.green),
-                title: Text(note.title, style: const TextStyle(color: Colors.white)),
-                subtitle: Text(
-                  'Created on ${_formatDate(note.date)}',
-                  style: const TextStyle(color: Colors.white54),
-                ),
-                onTap: () => controller.showNotePasswordDialog(context, note),
-              );
-            },
-          );
+              itemCount: notes.length,
+              padding: const EdgeInsets.all(16),
+              itemBuilder: (context, index) {
+                final note = notes[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8), // Add space between notes
+                  child: ListTile(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    tileColor: Colors.white10,
+                    leading: const Icon(LucideIcons.fileLock, color: Colors.green),
+                    title: Text(note.title, style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      'Created on ${_formatDate(note.date)}',
+                      style: const TextStyle(color: Colors.white54),
+                    ),
+                    onTap: () => controller.showNotePasswordDialog(context, note),
+                  ),
+                );
+              },
+            );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => controller.addNewNote(context),
-        backgroundColor: Colors.green,
-        child: const Icon(LucideIcons.plus, color: Colors.white),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 60),
+        child: FloatingActionButton(
+          onPressed: () => controller.addNewNote(context),
+          backgroundColor: Colors.green,
+          child: const Icon(LucideIcons.plus, color: Colors.white),
+        ),
       ),
     );
   }

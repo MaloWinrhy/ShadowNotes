@@ -3,6 +3,7 @@ import 'package:shadow_notes/src/notes/controller/note_editor_controller.dart';
 import '../models/note_model.dart';
 
 Future<NoteItem?> showNoteEditor(BuildContext context) async {
+  final controller = NoteEditorController();
   return await showModalBottomSheet<NoteItem>(
     context: context,
     isScrollControlled: true,
@@ -10,17 +11,17 @@ Future<NoteItem?> showNoteEditor(BuildContext context) async {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
-    builder: (context) => const NoteEditorView(),
+    builder: (context) => NoteEditorView(controller: controller),
   );
 }
 
 class NoteEditorView extends StatelessWidget {
-  const NoteEditorView({super.key});
+  final NoteEditorController controller;
+
+  const NoteEditorView({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    final controller = NoteEditorController();
-
     return Padding(
       padding: EdgeInsets.only(
         left: 16,
@@ -33,29 +34,29 @@ class NoteEditorView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context, controller),
+            _buildHeader(context),
             const SizedBox(height: 16),
-            _buildTextField(controller: controller.titleController, label: "Titre"),
-            _buildTextField(controller: controller.tagsController, label: "Tags (séparés par des virgules)"),
-            _buildTextField(controller: controller.noteController, label: "Contenu de la note", maxLines: 5),
-            _buildTextField(controller: controller.passwordController, label: "Mot de passe", obscureText: true),
+            _buildTextField(controller: controller.titleController, label: "Title"),
+            _buildTextField(controller: controller.tagsController, label: "Tags (comma separated)"),
+            _buildTextField(controller: controller.noteController, label: "Note content", maxLines: 5),
+            _buildTextField(controller: controller.passwordController, label: "Password", obscureText: true),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, NoteEditorController controller) {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const Text(
-          "Nouvelle Note",
+          "New Note",
           style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
         ),
         TextButton(
           onPressed: () => controller.saveNote(context),
-          child: const Text("Enregistrer", style: TextStyle(color: Colors.green)),
+          child: const Text("Save", style: TextStyle(color: Colors.green)),
         )
       ],
     );

@@ -20,7 +20,7 @@ class NoteEditorController {
     }
 
     try {
-      final (nonce, encrypted) = encryptNote(
+      final (nonce, encrypted) = await encryptNote(
         note: content,
         password: password,
       );
@@ -37,7 +37,7 @@ class NoteEditorController {
         Navigator.pop(context, newNote);
       }
     } catch (e) {
-      _showSnackBar(context, "Erreur de chiffrement: $e");
+      _showSnackBar(context, "Error: $e");
     }
   }
 

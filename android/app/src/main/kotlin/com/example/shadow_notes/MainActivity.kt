@@ -1,4 +1,4 @@
-package com.example.shadow_notes
+package com.shadownotes.app
 
 import io.flutter.embedding.android.FlutterActivity
 

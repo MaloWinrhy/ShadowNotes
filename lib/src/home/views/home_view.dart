@@ -42,7 +42,7 @@ class _HomeContainerState extends State<HomeContainer> with SingleTickerProvider
             clipBehavior: Clip.none,
             children: [
               Positioned(
-                bottom: 95,
+                bottom: 70,
                 left: 0,
                 right: 0,
                 height: 60,
@@ -61,9 +61,10 @@ class _HomeContainerState extends State<HomeContainer> with SingleTickerProvider
                 ),
               ),
               WaterDropNavBar(
+                bottomPadding: 10,
                 backgroundColor: Colors.black,
                 waterDropColor: Colors.green,
-                onItemSelected: controller.changePage,
+                onItemSelected: (index) => controller.changePage(context, index),
                 selectedIndex: currentIndex,
                 barItems: [
                   BarItem(filledIcon: Icons.notes, outlinedIcon: Icons.notes_outlined),
